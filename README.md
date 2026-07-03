@@ -56,7 +56,7 @@ git clone https://github.com/torguardvpn/luci-app-easymesh.git
 ---
 
 # **基于JD-Cloud RE-CP-02制作中文版luci-app-easymesh界面展示**
-<img width="1640" height="831" alt="image" src="https://github.com/user-attachments/assets/e47b8ed2-0119-462a-a732-67893b614104" />
+<img width="1637" height="869" alt="image" src="https://github.com/user-attachments/assets/727b81d6-6da0-4e68-8de9-f021b3348672" />
 <img width="1683" height="876" alt="image" src="https://github.com/user-attachments/assets/e8a63390-c57e-4c4f-bc4b-b0a3f558f53e" />
 
 # **📥 通过发布版 IPK 安装 luci-app-easymesh**  

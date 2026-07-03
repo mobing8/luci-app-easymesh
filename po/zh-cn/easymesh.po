@@ -1,0 +1,152 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_CN\n"
+"Language-Team: Chinese Simplified\n"
+"MIME-Version: 1.0\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+msgid "Easy Mesh WiFi Setup"
+msgstr "简易Mesh无线组网设置"
+
+msgid "Powered by Batman-adv (Better Approach To Mobile Adhoc Networking - Advanced). First setup your Mesh Gateway Server then setup the nodes. When configuring a Mesh Node, first activate your mesh WiFi on the radio device and establish a connection. Then enable it as a DHCP node. The default settings are typically adequate for most Mesh WiFi configurations."
+msgstr "基于Batman-adv高级移动自组网协议驱动。请先配置Mesh网关服务端，再配置节点设备。配置Mesh节点时，请先在无线射频上开启Mesh无线网络并建立连接，之后再启用DHCP节点模式。默认参数可满足绝大多数Mesh无线组网场景需求。"
+
+msgid "Official website:"
+msgstr "官方文档地址："
+
+msgid "Mesh Status"
+msgstr "Mesh组网状态"
+
+msgid "Number of Active Nodes: "
+msgstr "在线节点总数："
+
+msgid "Interface"
+msgstr "接口名称"
+
+msgid "Neighbor Nodes"
+msgstr "邻居节点MAC"
+
+msgid "Last Seen Timestamp"
+msgstr "最后通信时间"
+
+msgid "Mesh Settings"
+msgstr "Mesh组网参数"
+
+msgid "Basic Setup"
+msgstr "基础设置"
+
+msgid "AP Mode"
+msgstr "AP节点模式"
+
+msgid "Advanced Settings"
+msgstr "高级参数"
+
+msgid "Enable Mesh Networking"
+msgstr "启用Mesh组网功能"
+
+msgid "Toggle this switch to activate or deactivate the Mesh Network on this device according to the settings specified in this configuration."
+msgstr "勾选启用本设备Mesh无线网络，所有配置参数将立即生效。"
+
+msgid "Mesh Mode"
+msgstr "设备角色"
+
+msgid "Choose whether this device is a <b>Server</b>, <b>Client</b>, or <b>Node</b> in the mesh network."
+msgstr "选择当前设备在Mesh网络中的角色：服务端、客户端或节点。"
+
+msgid "Server"
+msgstr "网关服务端"
+
+msgid "Node"
+msgstr "扩展节点"
+
+msgid "Client"
+msgstr "客户端节点"
+
+msgid "WiFi Network SSID"
+msgstr "普通WiFi名称(SSID)"
+
+msgid "SSID for the regular WiFi network."
+msgstr "设备对外发射普通AP无线信号名称。"
+
+msgid "Regular AP Radio"
+msgstr "普通AP射频通道"
+
+msgid "Select the radio to be used for the regular WiFi access point."
+msgstr "选择用于发射普通家用WiFi的无线射频硬件。"
+
+msgid "Mesh Radio(s)"
+msgstr "Mesh回传射频"
+
+msgid "Select a radio interface for mesh backhaul traffic."
+msgstr "选择用于Mesh节点之间数据回传的无线射频通道，支持多选。"
+
+msgid "Mesh Network SSID"
+msgstr "Mesh组网专用SSID"
+
+msgid "<p style=\"text-align: justify; padding: 0;\"><strong>Ensure that the SSID is the same across all the servers/nodes in your mesh network.</strong></p>"
+msgstr "<p style=\"text-align: justify; padding: 0;\"><strong>所有Mesh网关与节点必须填写完全一致的Mesh专用SSID，否则无法组网。</strong></p>"
+
+msgid "Password Protection"
+msgstr "启用Mesh加密密码"
+
+msgid "<p style=\"text-align: justify; padding: 0;\"><strong>Enable this switch to require a password to join your Mesh Network.</strong></p>"
+msgstr "<p style=\"text-align: justify; padding: 0;\"><strong>开启后，其他节点必须输入相同密码才能接入Mesh网络。</strong></p>"
+
+msgid "Mesh Password"
+msgstr "Mesh组网密码"
+
+msgid "Reapply EasyMesh Settings"
+msgstr "重载应用Mesh配置"
+
+msgid "<p style=\"text-align: justify; padding: 0;\"><strong>Use this button to apply/reapply EasyMesh configuration after you Save & Apply.</p></strong>"
+msgstr "<p style=\"text-align: justify; padding: 0;\"><strong>点击此按钮重载并执行Mesh脚本，保存应用配置后建议手动点击生效。</strong></p>"
+
+msgid "K/V/R"
+msgstr "802.11k/v/r 快速漫游"
+
+msgid "<p style=\"text-align: justify; padding: 0;\"><strong>Leave these settings as default unless you know what you're doing</p></strong>"
+msgstr "<p style=\"text-align: justify; padding: 0;\"><strong>如不熟悉无线漫游原理，请保持默认值无需修改</strong></p>"
+
+msgid "Mobility Domain"
+msgstr "漫游域标识"
+
+msgid "Good RSSI Threshold"
+msgstr "优质信号RSSI阈值"
+
+msgid "Bad RSSI Threshold"
+msgstr "弱信号切换阈值"
+
+msgid "Node Hostname"
+msgstr "节点主机名"
+
+msgid "IP Mode"
+msgstr "IP获取方式"
+
+msgid "Choose if the node uses DHCP or a Static IP"
+msgstr "选择节点IP地址获取方式：自动DHCP或静态固定IP"
+
+msgid "DHCP"
+msgstr "自动获取(DHCP)"
+
+msgid "Static"
+msgstr "静态固定IP"
+
+msgid "Static IP Address"
+msgstr "静态IP地址"
+
+msgid "Mesh Gateway IP Address"
+msgstr "Mesh网关IP地址"
+
+msgid "IPv4 netmask"
+msgstr "IPv4子网掩码"
+
+msgid "DNS Server"
+msgstr "DNS解析服务器"
+
+msgid "Enable Dumb AP Mode"
+msgstr "切换为纯AP节点模式"
+
+msgid "WARNING: THIS WILL CHANGE THIS NODE'S IP ADDRESS, YOU WILL LOOSE ACCESS TO THIS UI"
+msgstr "警告：执行后本节点IP地址将被修改，页面会断开连接，需使用新IP重新登录"

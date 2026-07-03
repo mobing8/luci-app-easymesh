@@ -159,3 +159,7 @@ opkg install /path/to/luci-app-easymesh_3.8.17-r1_all.ipk
 ---
 
 🔥 **部署完成！你的 OpenWRT Mesh 无线组网已全部生效  🚀**  
+
+## 原始作者
+
+dz &lt;torguardvpn&gt;

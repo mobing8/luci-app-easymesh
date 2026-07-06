@@ -33,6 +33,14 @@ jobs:
         run: |
           cp -r luci-app-easymesh openwrt-sdk/package/
 
+      - name: Prepare feeds configuration
+        run: |
+          cd openwrt-sdk
+          # 增大 Git 缓冲区，避免大仓库克隆超时（方案二）
+          git config --global http.postBuffer 524288000
+          # 将 base feed 源替换为 GitHub 镜像，提高稳定性（方案三）
+          sed -i 's|src-git base https://git.openwrt.org/openwrt/openwrt.git|src-git base https://github.com/openwrt/openwrt.git|' feeds.conf.default
+
       - name: Update feeds and install LuCI
         run: |
           cd openwrt-sdk

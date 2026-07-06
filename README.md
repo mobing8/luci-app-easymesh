@@ -1,4 +1,4 @@
-# **📶OpenWRT EasyMesh 无线网格插件**
+# **📶OpenWRT EasyMesh 简单mesh插件**
 ### **依托 OpenWRT + Batman-adv，几分钟快速搭建无线Mesh网格网络**
 本插件旨在简化基于 WireGuard 的基础无线Mesh网格网络部署流程，底层基于 **Batman-adv（高级移动自组网协议）** 开发，可完美适配 TorGuard WireGuard OpenWRT 插件；同时也支持脱离VPN独立部署普通Mesh网络。
 

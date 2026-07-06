@@ -98,7 +98,7 @@ jobs:
         include:
           - target: ramips-mt7621
             # ⚠️ 重要：请将下面的链接替换为实际可用的 24.10 稳定版 SDK 地址
-            sdk_url: https://downloads.openwrt.org/releases/24.10.0/targets/ramips/mt7621/openwrt-sdk-24.10.0-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.xz
+            sdk_url: https://downloads.openwrt.org/releases/24.10.7/targets/ramips/mt7621/openwrt-sdk-24.10.7-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst
     steps:
       - name: Checkout your repository
         uses: actions/checkout@v4

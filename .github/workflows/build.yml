@@ -32,6 +32,11 @@ jobs:
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
+          # 自动生成缺失的pot翻译模板
+          cd package/luci-app-easymesh
+          mkdir -p po/templates
+          xgettext -d easymesh -o po/templates/easymesh.pot luasrc/view/* luasrc/controller/* luasrc/model/* 2>/dev/null || true
+          cd ../../
           # 注册本地package目录为local feeds，解决make找不到编译规则
           echo "src-link local $(pwd)/package" >> feeds.conf.default
           ./scripts/feeds update local
@@ -122,6 +127,11 @@ jobs:
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
+          # 自动生成缺失的pot翻译模板
+          cd package/luci-app-easymesh
+          mkdir -p po/templates
+          xgettext -d easymesh -o po/templates/easymesh.pot luasrc/view/* luasrc/controller/* luasrc/model/* 2>/dev/null || true
+          cd ../../
           # 注册本地package目录为local feeds，解决make找不到编译规则
           echo "src-link local $(pwd)/package" >> feeds.conf.default
           ./scripts/feeds update local

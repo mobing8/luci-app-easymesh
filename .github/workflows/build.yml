@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          path: luci-app-easymesh
 
       - name: Install build deps
         run: |
@@ -91,6 +93,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          path: luci-app-easymesh
 
       - name: Install build deps
         run: |

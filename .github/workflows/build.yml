@@ -27,32 +27,28 @@ jobs:
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* openwrt-sdk
 
-      - name: Copy package source into SDK & Register local feeds
+      - name: Copy package source & create valid pot placeholder
         run: |
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
-          # 自动生成缺失的pot翻译模板
-          cd package/luci-app-easymesh
-          mkdir -p po/templates
-          xgettext -d easymesh -o po/templates/easymesh.pot luasrc/view/* luasrc/controller/* luasrc/model/* 2>/dev/null || true
-          cd ../../
-          # 注册本地package目录为local feeds，解决make找不到编译规则
+          mkdir -p package/luci-app-easymesh/po/templates
+          # 移除EOF多行语法，改用echo生成pot，彻底规避shell报错
+          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          # 注册本地feeds
           echo "src-link local $(pwd)/package" >> feeds.conf.default
-          ./scripts/feeds update local
-          ./scripts/feeds install luci-app-easymesh
 
-      - name: Prepare feeds configuration
+      - name: Prepare feeds configuration & full feeds update once
         run: |
           cd openwrt-sdk
           git config --global http.postBuffer 524288000
           sed -i 's|src-git base https://git.openwrt.org/openwrt/openwrt.git|src-git base https://github.com/openwrt/openwrt.git|' feeds.conf.default
-
-      - name: Update feeds and install LuCI
-        run: |
-          cd openwrt-sdk
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          # 仅一次更新全部所需源，消除重复更新警告
+          ./scripts/feeds update base luci local
+          ./scripts/feeds install luci-app-easymesh luci-base luci-compat luci-lua-runtime
 
       - name: Configure build options
         run: |
@@ -60,7 +56,7 @@ jobs:
           make defconfig
           echo "CONFIG_USE_APK=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
-          # 开启中文翻译编译
+          # 开启LuCI简体中文翻译支持
           echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
           echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
           echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
@@ -74,12 +70,12 @@ jobs:
           echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
           make oldconfig
 
-      - name: Compile the package
+      - name: Compile first then clean (fix no rule error)
         run: |
           cd openwrt-sdk
           ./scripts/feeds search luci-app-easymesh
-          make package/luci-app-easymesh/clean V=s
           make package/luci-app-easymesh/compile V=s
+          make package/luci-app-easymesh/clean V=s
 
       - name: List built packages (APK + 翻译包)
         run: |
@@ -122,39 +118,32 @@ jobs:
           tar -xf sdk.tar.xz
           mv openwrt-sdk-* openwrt-sdk
 
-      - name: Copy package source into SDK & Register local feeds
+      - name: Copy package source & create valid pot placeholder
         run: |
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
-          # 自动生成缺失的pot翻译模板
-          cd package/luci-app-easymesh
-          mkdir -p po/templates
-          xgettext -d easymesh -o po/templates/easymesh.pot luasrc/view/* luasrc/controller/* luasrc/model/* 2>/dev/null || true
-          cd ../../
-          # 注册本地package目录为local feeds，解决make找不到编译规则
+          mkdir -p package/luci-app-easymesh/po/templates
+          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
           echo "src-link local $(pwd)/package" >> feeds.conf.default
-          ./scripts/feeds update local
-          ./scripts/feeds install luci-app-easymesh
 
-      - name: Prepare feeds configuration
+      - name: Prepare feeds configuration & full feeds update once
         run: |
           cd openwrt-sdk
           git config --global http.postBuffer 524288000
           sed -i 's|src-git base https://git.openwrt.org/openwrt/openwrt.git|src-git base https://github.com/openwrt/openwrt.git|' feeds.conf.default
-
-      - name: Update feeds and install LuCI
-        run: |
-          cd openwrt-sdk
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          ./scripts/feeds update base luci local
+          ./scripts/feeds install luci-app-easymesh luci-base luci-compat luci-lua-runtime
 
       - name: Configure build options
         run: |
           cd openwrt-sdk
           make defconfig
           echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
-          # 开启中文翻译编译
+          # 开启LuCI简体中文翻译支持
           echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
           echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
           echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
@@ -162,18 +151,18 @@ jobs:
           echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
           echo "CONFIG_PACKAGE_dawn=y" >> .config
           echo "CONFIG_PACKAGE_luci-compat=y" >> .config
-          echo "CONFIG_PACKAGE_luci-lua-runtime=y" >> .config
+          echo "CONFIG_PACKAGE-luci-lua-runtime=y" >> .config
           echo "CONFIG_PACKAGE_bash=y" >> .config
           echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
           echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
           make oldconfig
 
-      - name: Compile the package
+      - name: Compile first then clean (fix no rule error)
         run: |
           cd openwrt-sdk
           ./scripts/feeds search luci-app-easymesh
-          make package/luci-app-easymesh/clean V=s
           make package/luci-app-easymesh/compile V=s
+          make package/luci-app-easymesh/clean V=s
 
       - name: List built packages (IPK + 翻译包)
         run: |

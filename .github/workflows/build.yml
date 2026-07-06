@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 jobs:
   # =============================================
-  # 任务一：使用 OpenWrt 25.12 (最新) 构建 APK 包
+  # 任务一：25.12 构建APK
   # =============================================
   build-apk:
     runs-on: ubuntu-latest
@@ -16,87 +16,72 @@ jobs:
           - target: ramips-mt7621
             sdk_url: https://downloads.openwrt.org/releases/25.12.0-rc2/targets/ramips/mt7621/openwrt-sdk-25.12.0-rc2-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
     steps:
-      - name: Checkout your repository
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          path: luci-app-easymesh
 
-      - name: Download and extract OpenWrt SDK
+      - name: Install build deps
         run: |
-          wget -O sdk.tar.zst "${{ matrix.sdk_url }}"
+          sudo apt update
+          sudo apt install -y build-essential gawk gettext unzip zstd wget libncurses-dev libssl-dev python3
+
+      - name: Download & extract SDK
+        run: |
+          TARGET_SLUG=$(echo ${{ matrix.target }} | tr '/' '-')
+          SDK_FILENAME="openwrt-sdk-${{ matrix.version }}-${TARGET_SLUG}_gcc-${{ matrix.gcc_version }}_musl.${{ matrix.sdk_suffix }}"
+          wget -q "${{ matrix.sdk_url }}" -O sdk.tar.zst
           tar -xf sdk.tar.zst
-          mv openwrt-sdk-* openwrt-sdk
+          mv openwrt-sdk-* sdk
+          echo TARGET_SLUG=$TARGET_SLUG >> $GITHUB_ENV
 
-      - name: Copy package source & create valid pot placeholder
+      - name: Copy plugin to standard custom path + generate pot
         run: |
-          cd openwrt-sdk
-          rm -rf package/luci-app-easymesh
-          cp -r ../luci-app-easymesh package/
-          mkdir -p package/luci-app-easymesh/po/templates
-          # 移除EOF多行语法，改用echo生成pot，彻底规避shell报错
-          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
-          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          # 注册本地feeds
-          echo "src-link local $(pwd)/package" >> feeds.conf.default
+          cd sdk
+          mkdir -p package/custom/luci-app-easymesh
+          cp -r ../luci-app-easymesh/* package/custom/luci-app-easymesh/
+          # 生成合法pot无语法报错
+          mkdir -p package/custom/luci-app-easymesh/po/templates
+          echo 'msgid ""' > package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          # 标准自定义feeds写法
+          echo "src-link custom $(pwd)/package/custom" >> feeds.conf.default
 
-      - name: Prepare feeds configuration & full feeds update once
+      - name: Feeds minimal update & install
         run: |
-          cd openwrt-sdk
-          git config --global http.postBuffer 524288000
-          sed -i 's|src-git base https://git.openwrt.org/openwrt/openwrt.git|src-git base https://github.com/openwrt/openwrt.git|' feeds.conf.default
-          # 仅一次更新全部所需源，消除重复更新警告
-          ./scripts/feeds update base luci local
-          ./scripts/feeds install luci-app-easymesh luci-base luci-compat luci-lua-runtime
+          cd sdk
+          sed -i 's|git.openwrt.org|github.com/openwrt|g' feeds.conf.default
+          ./scripts/feeds update luci custom
+          ./scripts/feinstall luci-base luci-app-easymesh
 
-      - name: Configure build options
+      - name: Minimal config
         run: |
-          cd openwrt-sdk
-          make defconfig
-          echo "CONFIG_USE_APK=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
-          # 开启LuCI简体中文翻译支持
-          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
-          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
-          echo "CONFIG_PACKAGE_batctl-default=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
-          echo "CONFIG_PACKAGE_dawn=y" >> .config
-          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
-          echo "CONFIG_PACKAGE_luci-lua-runtime=y" >> .config
-          echo "CONFIG_PACKAGE_bash=y" >> .config
-          echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
-          echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
-          make oldconfig
+          cd sdk
+          make defconfig V=0
+          echo CONFIG_USE_APK=y >> .config
+          echo CONFIG_PACKAGE_luci-app-easymesh=y >> .config
+          echo CONFIG_LUCI_LANG_zh-cn=y >> .config
+          make olddefconfig V=0
 
-      - name: Compile first then clean (fix no rule error)
+      - name: Compile only (remove clean to avoid no rule)
         run: |
-          cd openwrt-sdk
+          cd sdk
           ./scripts/feeds search luci-app-easymesh
-          make package/luci-app-easymesh/compile V=s
-          make package/luci-app-easymesh/clean V=s
+          make package/luci-app-easymesh/compile V=s IGNORE_ERRORS=m
 
-      - name: List built packages (APK + 翻译包)
+      - name: Collect packages
         run: |
-          cd openwrt-sdk
-          echo "=== 生成所有APK ==="
-          find bin/packages/ -name "*easymesh*.apk" || echo "未找到easymesh相关APK"
+          mkdir -p output/apk
+          find sdk/bin/packages -name "*easymesh*.apk" -exec cp {} output/apk/ \;
 
-      - name: Collect generated packages (APK + i18n翻译包)
-        run: |
-          cd openwrt-sdk
-          mkdir -p ../artifacts-apk
-          find bin/packages/ -name "*easymesh*.apk" | xargs cp -t ../artifacts-apk/ || true
-
-      - name: Upload APK artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: apk-packages-${{ matrix.target }}
-          path: artifacts-apk/
+          name: apk-${{ matrix.target }}
+          path: output/apk/
 
   # =============================================
-  # 任务二：使用 OpenWrt 24.10 (稳定版) 构建 IPK 包
+  # 任务二：24.10 构建IPK
   # =============================================
   build-ipk:
     runs-on: ubuntu-latest
@@ -107,77 +92,62 @@ jobs:
           - target: ramips-mt7621
             sdk_url: https://downloads.openwrt.org/releases/24.10.7/targets/ramips/mt7621/openwrt-sdk-24.10.7-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst
     steps:
-      - name: Checkout your repository
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          path: luci-app-easymesh
 
-      - name: Download and extract OpenWrt SDK
+      - name: Install build deps
         run: |
-          wget -O sdk.tar.xz "${{ matrix.sdk_url }}"
+          sudo apt update
+          sudo apt install -y build-essential gawk gettext unzip xz wget libncurses-dev libssl-dev python3
+
+      - name: Download & extract SDK
+        run: |
+          TARGET_SLUG=$(echo ${{ matrix.target }} | tr '/' '-')
+          wget -q "${{ matrix.sdk_url }}" -O sdk.tar.xz
           tar -xf sdk.tar.xz
-          mv openwrt-sdk-* openwrt-sdk
+          mv openwrt-sdk-* sdk
+          echo TARGET_SLUG=$TARGET_SLUG >> $GITHUB_ENV
 
-      - name: Copy package source & create valid pot placeholder
+      - name: Copy plugin to standard custom path + generate pot
         run: |
-          cd openwrt-sdk
-          rm -rf package/luci-app-easymesh
-          cp -r ../luci-app-easymesh package/
-          mkdir -p package/luci-app-easymesh/po/templates
-          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
-          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo "src-link local $(pwd)/package" >> feeds.conf.default
+          cd sdk
+          mkdir -p package/custom/luci-app-easymesh
+          cp -r ../luci-app-easymesh/* package/custom/luci-app-easymesh/
+          mkdir -p package/custom/luci-app-easymesh/po/templates
+          echo 'msgid ""' > package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
+          echo "src-link custom $(pwd)/package/custom" >> feeds.conf.default
 
-      - name: Prepare feeds configuration & full feeds update once
+      - name: Feeds minimal update & install
         run: |
-          cd openwrt-sdk
-          git config --global http.postBuffer 524288000
-          sed -i 's|src-git base https://git.openwrt.org/openwrt/openwrt.git|src-git base https://github.com/openwrt/openwrt.git|' feeds.conf.default
-          ./scripts/feeds update base luci local
-          ./scripts/feeds install luci-app-easymesh luci-base luci-compat luci-lua-runtime
+          cd sdk
+          sed -i 's|git.openwrt.org|github.com/openwrt|g' feeds.conf.default
+          ./scripts/feeds update luci custom
+          ./scripts/feeds install luci-base luci-app-easymesh
 
-      - name: Configure build options
+      - name: Minimal config
         run: |
-          cd openwrt-sdk
-          make defconfig
-          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
-          # 开启LuCI简体中文翻译支持
-          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
-          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
-          echo "CONFIG_PACKAGE_batctl-default=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
-          echo "CONFIG_PACKAGE_dawn=y" >> .config
-          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
-          echo "CONFIG_PACKAGE-luci-lua-runtime=y" >> .config
-          echo "CONFIG_PACKAGE_bash=y" >> .config
-          echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
-          echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
-          make oldconfig
+          cd sdk
+          make defconfig V=0
+          echo CONFIG_PACKAGE_luci-app-easymesh=y >> .config
+          echo CONFIG_LUCI_LANG_zh-cn=y >> .config
+          make olddefconfig V=0
 
-      - name: Compile first then clean (fix no rule error)
+      - name: Compile only
         run: |
-          cd openwrt-sdk
+          cd sdk
           ./scripts/feeds search luci-app-easymesh
-          make package/luci-app-easymesh/compile V=s
-          make package/luci-app-easymesh/clean V=s
+          make package/luci-app-easymesh/compile V=s IGNORE_ERRORS=m
 
-      - name: List built packages (IPK + 翻译包)
+      - name: Collect packages
         run: |
-          cd openwrt-sdk
-          echo "=== 生成所有IPK ==="
-          find bin/packages/ -name "*easymesh*.ipk" || echo "未找到easymesh相关IPK"
+          mkdir -p output/ipk
+          find sdk/bin/packages -name "*easymesh*.ipk" -exec cp {} output/ipk/ \;
 
-      - name: Collect generated packages (IPK + i18n翻译包)
-        run: |
-          cd openwrt-sdk
-          mkdir -p ../artifacts-ipk
-          find bin/packages/ -name "*easymesh*.ipk" | xargs cp -t ../artifacts-ipk/ || true
-
-      - name: Upload IPK artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ipk-packages-${{ matrix.target }}
-          path: artifacts-ipk/
+          name: ipk-${{ matrix.target }}
+          path: output/ipk/

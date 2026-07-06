@@ -1,0 +1,75 @@
+name: Build EasyMesh Packages (IPK + APK)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: ipq60xx-generic
+            sdk_url: https://downloads.openwrt.org/releases/25.12.0-rc2/targets/qualcommax/ipq60xx/openwrt-sdk-25.12.0-rc2-qualcommax-ipq60xx_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+          - target: ramips-mt7621
+            sdk_url: https://downloads.openwrt.org/releases/25.12.0-rc2/targets/ramips/mt7621/openwrt-sdk-25.12.0-rc2-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst
+
+    steps:
+      - name: Checkout your repository
+        uses: actions/checkout@v4
+        with:
+          path: luci-app-easymesh
+
+      - name: Download and extract OpenWrt SDK
+        run: |
+          wget -O sdk.tar.zst "${{ matrix.sdk_url }}"
+          tar -xf sdk.tar.zst
+          mv openwrt-sdk-* openwrt-sdk
+
+      - name: Copy package source into SDK
+        run: |
+          cp -r luci-app-easymesh openwrt-sdk/package/
+
+      - name: Update feeds and install LuCI
+        run: |
+          cd openwrt-sdk
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Configure build options
+        run: |
+          cd openwrt-sdk
+          make defconfig
+          echo "CONFIG_USE_APK=y" >> .config
+          ./scripts/config -e PACKAGE_luci-app-easymesh
+          ./scripts/config -e PACKAGE_kmod-cfg80211
+          ./scripts/config -e PACKAGE_batctl-default
+          ./scripts/config -e PACKAGE_kmod-batman-adv
+          ./scripts/config -e PACKAGE_dawn
+          ./scripts/config -e PACKAGE_luci-compat
+          ./scripts/config -e PACKAGE_luci-lua-runtime
+          ./scripts/config -e PACKAGE_bash
+          ./scripts/config -e PACKAGE_libiwinfo-lua
+          ./scripts/config -e PACKAGE_luci-proto-batman-adv
+          make oldconfig
+
+      - name: Compile the package
+        run: |
+          cd openwrt-sdk
+          make package/luci-app-easymesh/compile V=s
+
+      - name: Collect generated packages
+        run: |
+          cd openwrt-sdk
+          mkdir -p ../artifacts
+          find bin/packages/ -name "luci-app-easymesh*.ipk" -o -name "luci-i18n-easymesh*.ipk" | xargs cp -t ../artifacts/ || true
+          find bin/packages/ -name "luci-app-easymesh*.apk" -o -name "luci-i18n-easymesh*.apk" | xargs cp -t ../artifacts/ || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.target }}
+          path: artifacts/

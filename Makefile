@@ -1,21 +1,19 @@
-#
-#-- TorGuard
-#
-#--Add +wpad-mesh-openssl or wpa package for build
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-easymesh
-PKG_VERSION:=3.8.17
-PKG_RELEASE:=$(AUTORELEASE)
-PKG_MAINTAINER:=TorGuard <admin@torguard.net>
+PKG_VERSION:=1.0
+PKG_RELEASE:=1
 
-LUCI_TITLE:=LuCI Support for easymesh
-LUCI_DEPENDS:= +kmod-cfg80211 +batctl-default +kmod-batman-adv +dawn +luci-compat +luci-lua-runtime +bash +libiwinfo-lua +luci-proto-batman-adv
-# 显式声明中文
-LUCI_LANGUAGES:=zh-cn   
+PKG_MAINTAINER:=xxx
+PKG_LICENSE:=MIT
 
-
+# 导入LuCI编译规则
 include $(TOPDIR)/feeds/luci/luci.mk
 
-# call BuildPackage - OpenWrt buildroot signature
+# 开启翻译包生成
+LUCI_I18N:=1
+LUCI_PKGNAME:=easymesh
+LUCI_TITLE:=Easy Mesh WiFi Setup
+LUCI_DEPENDS:=+luci-base +batman-adv
+
+$(eval $(call LuCIPackage,luci-app-easymesh))

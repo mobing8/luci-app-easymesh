@@ -32,9 +32,8 @@ jobs:
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
-          # 注册本地package目录为local feeds
+          # 注册本地package目录为local feeds，解决make找不到编译规则
           echo "src-link local $(pwd)/package" >> feeds.conf.default
-          # 更新本地feeds并安装插件，让make识别编译规则
           ./scripts/feeds update local
           ./scripts/feeds install luci-app-easymesh
 
@@ -47,49 +46,43 @@ jobs:
       - name: Update feeds and install LuCI
         run: |
           cd openwrt-sdk
-          ./scripts/feeds update base luci packages routing telephony video
+          ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Configure build options
         run: |
           cd openwrt-sdk
           make defconfig
-          # 写入所有编译配置到临时文件，避免重复echo造成Kconfig冲突
-          cat > .tmp_defcfg << 'EOT'
-CONFIG_USE_APK=y
-CONFIG_PACKAGE_luci-app-easymesh=y
-CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
-CONFIG_LUCI_LANG_zh-cn=y
-CONFIG_PACKAGE_kmod-cfg80211=y
-CONFIG_PACKAGE_batctl-default=y
-CONFIG_PACKAGE_kmod-batman-adv=y
-CONFIG_PACKAGE_dawn=y
-CONFIG_PACKAGE_luci-compat=y
-CONFIG_PACKAGE_luci-lua-runtime=y
-CONFIG_PACKAGE_bash=y
-CONFIG_PACKAGE_libiwinfo-lua=y
-CONFIG_PACKAGE_luci-proto-batman-adv=y
-EOT
-          # 标准合并配置，自动处理依赖冲突
-          ./scripts/config/conf --defconfig=.tmp_defcfg
-          rm -f .tmp_defcfg
+          echo "CONFIG_USE_APK=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
+          # 开启中文翻译编译
+          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
+          echo "CONFIG_PACKAGE_batctl-default=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
+          echo "CONFIG_PACKAGE_dawn=y" >> .config
+          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
+          echo "CONFIG_PACKAGE_luci-lua-runtime=y" >> .config
+          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
+          echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
           make oldconfig
 
       - name: Compile the package
         run: |
           cd openwrt-sdk
-          # 打印检索结果，校验插件是否注册成功
           ./scripts/feeds search luci-app-easymesh
           make package/luci-app-easymesh/clean V=s
           make package/luci-app-easymesh/compile V=s
 
-      - name: List built packages (APK + i18n translation apk)
+      - name: List built packages (APK + 翻译包)
         run: |
           cd openwrt-sdk
-          echo "=== All generated APK files ==="
-          find bin/packages/ -name "*.apk" | grep -i easymesh || echo "No easymesh apk found"
+          echo "=== 生成所有APK ==="
+          find bin/packages/ -name "*easymesh*.apk" || echo "未找到easymesh相关APK"
 
-      - name: Collect generated packages (APK + i18n)
+      - name: Collect generated packages (APK + i18n翻译包)
         run: |
           cd openwrt-sdk
           mkdir -p ../artifacts-apk
@@ -129,9 +122,8 @@ EOT
           cd openwrt-sdk
           rm -rf package/luci-app-easymesh
           cp -r ../luci-app-easymesh package/
-          # 注册本地package目录为local feeds
+          # 注册本地package目录为local feeds，解决make找不到编译规则
           echo "src-link local $(pwd)/package" >> feeds.conf.default
-          # 更新本地feeds并安装插件，让make识别编译规则
           ./scripts/feeds update local
           ./scripts/feeds install luci-app-easymesh
 
@@ -144,48 +136,42 @@ EOT
       - name: Update feeds and install LuCI
         run: |
           cd openwrt-sdk
-          ./scripts/feeds update base luci packages routing telephony video
+          ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Configure build options
         run: |
           cd openwrt-sdk
           make defconfig
-          # 写入所有编译配置到临时文件，避免重复echo造成Kconfig冲突
-          cat > .tmp_defcfg << 'EOT'
-CONFIG_PACKAGE_luci-app-easymesh=y
-CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
-CONFIG_LUCI_LANG_zh-cn=y
-CONFIG_PACKAGE_kmod-cfg80211=y
-CONFIG_PACKAGE_batctl-default=y
-CONFIG_PACKAGE_kmod-batman-adv=y
-CONFIG_PACKAGE_dawn=y
-CONFIG_PACKAGE_luci-compat=y
-CONFIG_PACKAGE_luci-lua-runtime=y
-CONFIG_PACKAGE_bash=y
-CONFIG_PACKAGE_libiwinfo-lua=y
-CONFIG_PACKAGE_luci-proto-batman-adv=y
-EOT
-          # 标准合并配置，自动处理依赖冲突
-          ./scripts/config/conf --defconfig=.tmp_defcfg
-          rm -f .tmp_defcfg
+          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
+          # 开启中文翻译编译
+          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
+          echo "CONFIG_PACKAGE_batctl-default=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
+          echo "CONFIG_PACKAGE_dawn=y" >> .config
+          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
+          echo "CONFIG_PACKAGE_luci-lua-runtime=y" >> .config
+          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
+          echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
           make oldconfig
 
       - name: Compile the package
         run: |
           cd openwrt-sdk
-          # 打印检索结果，校验插件是否注册成功
           ./scripts/feeds search luci-app-easymesh
           make package/luci-app-easymesh/clean V=s
           make package/luci-app-easymesh/compile V=s
 
-      - name: List built packages (IPK + i18n translation ipk)
+      - name: List built packages (IPK + 翻译包)
         run: |
           cd openwrt-sdk
-          echo "=== All generated IPK files ==="
-          find bin/packages/ -name "*.ipk" | grep -i easymesh || echo "No easymesh ipk found"
+          echo "=== 生成所有IPK ==="
+          find bin/packages/ -name "*easymesh*.ipk" || echo "未找到easymesh相关IPK"
 
-      - name: Collect generated packages (IPK + i18n)
+      - name: Collect generated packages (IPK + i18n翻译包)
         run: |
           cd openwrt-sdk
           mkdir -p ../artifacts-ipk

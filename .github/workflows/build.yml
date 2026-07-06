@@ -54,6 +54,9 @@ jobs:
           make defconfig
           echo "CONFIG_USE_APK=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
+          # 新增两行，开启LuCI简体中文翻译支持
+          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
           echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
           echo "CONFIG_PACKAGE_batctl-default=y" >> .config
           echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
@@ -133,6 +136,9 @@ jobs:
           cd openwrt-sdk
           make defconfig
           echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
+          # 新增两行，开启LuCI简体中文翻译支持
+          echo "CONFIG_PACKAGE_luci-i18n-base-zh-cn=y" >> .config
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .config
           echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
           echo "CONFIG_PACKAGE_batctl-default=y" >> .config
           echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config

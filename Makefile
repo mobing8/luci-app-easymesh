@@ -12,6 +12,9 @@ PKG_MAINTAINER:=TorGuard <admin@torguard.net>
 
 LUCI_TITLE:=LuCI Support for easymesh
 LUCI_DEPENDS:= +kmod-cfg80211 +batctl-default +kmod-batman-adv +dawn +luci-compat +luci-lua-runtime +bash +libiwinfo-lua +luci-proto-batman-adv
+# 显式声明中文
+LUCI_LANGUAGES:=zh-cn   
+
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

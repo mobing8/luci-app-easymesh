@@ -44,16 +44,16 @@ jobs:
           cd openwrt-sdk
           make defconfig
           echo "CONFIG_USE_APK=y" >> .config
-          ./scripts/config -e PACKAGE_luci-app-easymesh
-          ./scripts/config -e PACKAGE_kmod-cfg80211
-          ./scripts/config -e PACKAGE_batctl-default
-          ./scripts/config -e PACKAGE_kmod-batman-adv
-          ./scripts/config -e PACKAGE_dawn
-          ./scripts/config -e PACKAGE_luci-compat
-          ./scripts/config -e PACKAGE_luci-lua-runtime
-          ./scripts/config -e PACKAGE_bash
-          ./scripts/config -e PACKAGE_libiwinfo-lua
-          ./scripts/config -e PACKAGE_luci-proto-batman-adv
+          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-cfg80211=y" >> .config
+          echo "CONFIG_PACKAGE_batctl-default=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-batman-adv=y" >> .config
+          echo "CONFIG_PACKAGE_dawn=y" >> .config
+          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
+          echo "CONFIG_PACKAGE_luci-lua-runtime=y" >> .config
+          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_libiwinfo-lua=y" >> .config
+          echo "CONFIG_PACKAGE_luci-proto-batman-adv=y" >> .config
           make oldconfig
 
       - name: Compile the package

@@ -21,13 +21,12 @@ jobs:
 
       - name: Install build deps
         run: |
-          sudo apt update
-          sudo apt install -y build-essential gawk gettext unzip zstd wget libncurses-dev libssl-dev python3
+          sudo apt update -y
+          sudo apt install -y build-essential gawk gettext unzip xz-utils zstd wget libncurses-dev libssl-dev python3
 
       - name: Download & extract SDK
         run: |
           TARGET_SLUG=$(echo ${{ matrix.target }} | tr '/' '-')
-          SDK_FILENAME="openwrt-sdk-${{ matrix.version }}-${TARGET_SLUG}_gcc-${{ matrix.gcc_version }}_musl.${{ matrix.sdk_suffix }}"
           wget -q "${{ matrix.sdk_url }}" -O sdk.tar.zst
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
@@ -38,13 +37,11 @@ jobs:
           cd sdk
           mkdir -p package/custom/luci-app-easymesh
           cp -r ../luci-app-easymesh/* package/custom/luci-app-easymesh/
-          # 生成合法pot无语法报错
           mkdir -p package/custom/luci-app-easymesh/po/templates
           echo 'msgid ""' > package/custom/luci-app-easymesh/po/templates/easymesh.pot
           echo 'msgstr ""' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
           echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
           echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          # 标准自定义feeds写法
           echo "src-link custom $(pwd)/package/custom" >> feeds.conf.default
 
       - name: Feeds minimal update & install
@@ -52,7 +49,7 @@ jobs:
           cd sdk
           sed -i 's|git.openwrt.org|github.com/openwrt|g' feeds.conf.default
           ./scripts/feeds update luci custom
-          ./scripts/feinstall luci-base luci-app-easymesh
+          ./scripts/feeds install luci-base luci-app-easymesh
 
       - name: Minimal config
         run: |
@@ -63,7 +60,7 @@ jobs:
           echo CONFIG_LUCI_LANG_zh-cn=y >> .config
           make olddefconfig V=0
 
-      - name: Compile only (remove clean to avoid no rule)
+      - name: Compile only
         run: |
           cd sdk
           ./scripts/feeds search luci-app-easymesh
@@ -97,8 +94,8 @@ jobs:
 
       - name: Install build deps
         run: |
-          sudo apt update
-          sudo apt install -y build-essential gawk gettext unzip xz wget libncurses-dev libssl-dev python3
+          sudo apt update -y
+          sudo apt install -y build-essential gawk gettext unzip xz-utils zstd wget libncurses-dev libssl-dev python3
 
       - name: Download & extract SDK
         run: |

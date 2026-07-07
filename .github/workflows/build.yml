@@ -4,9 +4,7 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 jobs:
-  # =============================================
-  # 任务一：25.12 构建APK
-  # =============================================
+  # 25.12 构建APK
   build-apk:
     runs-on: ubuntu-latest
     strategy:
@@ -34,24 +32,16 @@ jobs:
           mv openwrt-sdk-* sdk
           echo TARGET_SLUG=$TARGET_SLUG >> $GITHUB_ENV
 
-      - name: Copy plugin to standard custom path + generate pot
+      - name: Copy plugin & generate pot
         run: |
           cd sdk
-          mkdir -p package/custom/luci-app-easymesh
-          cp -r ../luci-app-easymesh/* package/custom/luci-app-easymesh/
-          mkdir -p package/custom/luci-app-easymesh/po/templates
-          echo 'msgid ""' > package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo 'msgstr ""' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo "src-link custom $(pwd)/package/custom" >> feeds.conf.default
-
-      - name: Feeds minimal update & install
-        run: |
-          cd sdk
-          sed -i 's|git.openwrt.org|github.com/openwrt|g' feeds.conf.default
-          ./scripts/feeds update luci custom
-          ./scripts/feeds install luci-base luci-app-easymesh
+          rm -rf package/luci-app-easymesh
+          cp -r ../luci-app-easymesh package/
+          mkdir -p package/luci-app-easymesh/po/templates
+          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
       - name: Minimal config
         run: |
@@ -62,10 +52,9 @@ jobs:
           echo CONFIG_LUCI_LANG_zh-cn=y >> .config
           make olddefconfig V=0
 
-      - name: Compile only
+      - name: Compile single package (无需feeds)
         run: |
           cd sdk
-          ./scripts/feeds search luci-app-easymesh
           make package/luci-app-easymesh/compile V=s IGNORE_ERRORS=m
 
       - name: Collect packages
@@ -79,9 +68,7 @@ jobs:
           name: apk-${{ matrix.target }}
           path: output/apk/
 
-  # =============================================
-  # 任务二：24.10 构建IPK
-  # =============================================
+  # 24.10 构建IPK
   build-ipk:
     runs-on: ubuntu-latest
     strategy:
@@ -109,24 +96,16 @@ jobs:
           mv openwrt-sdk-* sdk
           echo TARGET_SLUG=$TARGET_SLUG >> $GITHUB_ENV
 
-      - name: Copy plugin to standard custom path + generate pot
+      - name: Copy plugin & generate pot
         run: |
           cd sdk
-          mkdir -p package/custom/luci-app-easymesh
-          cp -r ../luci-app-easymesh/* package/custom/luci-app-easymesh/
-          mkdir -p package/custom/luci-app-easymesh/po/templates
-          echo 'msgid ""' > package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo 'msgstr ""' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/custom/luci-app-easymesh/po/templates/easymesh.pot
-          echo "src-link custom $(pwd)/package/custom" >> feeds.conf.default
-
-      - name: Feeds minimal update & install
-        run: |
-          cd sdk
-          sed -i 's|git.openwrt.org|github.com/openwrt|g' feeds.conf.default
-          ./scripts/feeds update luci custom
-          ./scripts/feeds install luci-base luci-app-easymesh
+          rm -rf package/luci-app-easymesh
+          cp -r ../luci-app-easymesh package/
+          mkdir -p package/luci-app-easymesh/po/templates
+          echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
+          echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
       - name: Minimal config
         run: |
@@ -136,10 +115,9 @@ jobs:
           echo CONFIG_LUCI_LANG_zh-cn=y >> .config
           make olddefconfig V=0
 
-      - name: Compile only
+      - name: Compile single package (无需feeds)
         run: |
           cd sdk
-          ./scripts/feeds search luci-app-easymesh
           make package/luci-app-easymesh/compile V=s IGNORE_ERRORS=m
 
       - name: Collect packages

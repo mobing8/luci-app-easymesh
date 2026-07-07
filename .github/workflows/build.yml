@@ -41,10 +41,10 @@ jobs:
           mkdir -p package/luci-app-easymesh/po/templates
           echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
           echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
-      - name: Simple config (原生make命令，无conf工具报错)
+      - name: Simple config
         run: |
           cd sdk
           make defconfig V=0
@@ -81,7 +81,7 @@ jobs:
             sdk_url: https://downloads.openwrt.org/releases/24.10.7/targets/ramips/mt7621/openwrt-sdk-24.10.7-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst
     steps:
       - name: Checkout repo
-        uses: actions/checkout @v4
+        uses: actions/checkout@v4
         with:
           path: luci-app-easymesh
 
@@ -106,10 +106,10 @@ jobs:
           mkdir -p package/luci-app-easymesh/po/templates
           echo 'msgid ""' > package/luci-app-easymesh/po/templates/easymesh.pot
           echo 'msgstr ""' >> package/luci-app-easymesh/po/templates/easymesh.pot
-          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh.pot
-          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh.pot
+          echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
+          echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
-      - name: Simple config (原生make命令，无conf工具报错)
+      - name: Simple config
         run: |
           cd sdk
           make defconfig V=0

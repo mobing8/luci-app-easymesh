@@ -9,7 +9,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 任务1：编译 IPK 格式（OpenWrt 24.10.7）
   build-ipk:
     name: Build IPK (mt7621)
     runs-on: ubuntu-latest
@@ -28,60 +27,61 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential gawk gettext git libelf-dev \
-            libncurses5-dev libssl-dev python3 python3-setuptools unzip wget \
-            rsync zlib1g-dev ccache zstd
+            libncurses5-dev libssl-dev python3 unzip wget rsync zstd ccache
 
-      - name: 下载并解压 SDK
+      - name: 下载解压SDK
         run: |
           wget -q "$SDK_URL" -O sdk.tar.zst
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
 
-      - name: 拉取并安装 LuCI 源码（关键：确保luci.mk存在）
+      - name: 拉取LuCI源码（仅获取luci.mk核心宏）
         working-directory: sdk
         run: |
-          # 清理旧luci源，写入指定分支
           sed -i '/src-git luci/d' feeds.conf.default
           echo "src-git luci https://github.com/openwrt/luci.git;$LUCI_BRANCH" >> feeds.conf.default
-          # 更新并安装LuCI全套源码
           ./scripts/feeds update luci
-          ./scripts/feeds install -a -p luci
-          # 校验：确认luci.mk存在
           ls -lh feeds/luci/luci.mk
 
-      - name: 复制插件到 package 目录
+      - name: 复制插件到package目录
         run: |
           cp -r luci-app-easymesh sdk/package/
-          # 校验：确认插件Makefile存在
           ls -lh sdk/package/luci-app-easymesh/Makefile
 
-      - name: 生成配置并校验插件识别
+      - name: 校验Makefile语法 + 包识别状态
         working-directory: sdk
         run: |
-          make defconfig
-          # 正常会输出 CONFIG_PACKAGE_luci-app-easymesh=m，说明插件被识别
-          echo "=== 插件识别状态 ==="
-          grep "CONFIG_PACKAGE_luci-app-easymesh" .config || echo "❌ 插件未被识别"
-          grep "CONFIG_PACKAGE_luci-i18n-easymesh-zh-cn" .config || echo "⚠️  中文语言包未识别"
+          echo "=== 1. 校验Makefile语法 ==="
+          make package/luci-app-easymesh/info V=s
+          echo ""
+          echo "=== 2. 生成默认配置 ==="
+          make defconfig > /dev/null 2>&1
+          echo ""
+          echo "=== 3. 包识别结果 ==="
+          if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then
+            echo "✅ 插件识别成功"
+          else
+            echo "❌ 插件未识别，Makefile存在问题"
+            exit 1
+          fi
 
-      - name: 编译 IPK 包
+      - name: 编译IPK包
         working-directory: sdk
         run: |
           make package/luci-app-easymesh/compile V=s -j$(nproc)
 
-      - name: 收集 IPK 产物
+      - name: 收集产物
         run: |
           mkdir -p output/ipk
           find sdk/bin/packages -name "luci-app-easymesh*.ipk" -o -name "luci-i18n-easymesh*.ipk" | xargs -I {} cp {} output/ipk/
           ls -lh output/ipk/
 
-      - name: 上传 IPK 产物
+      - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-easymesh-ipk-${{ env.ARCH }}
           path: output/ipk/*.ipk
 
-  # 任务2：编译 APK 格式（OpenWrt 25.12.0-rc2）
   build-apk:
     name: Build APK (mt7621)
     runs-on: ubuntu-latest
@@ -100,50 +100,57 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential gawk gettext git libelf-dev \
-            libncurses5-dev libssl-dev python3 python3-setuptools unzip wget \
-            rsync zlib1g-dev ccache zstd
+            libncurses5-dev libssl-dev python3 unzip wget rsync zstd ccache
 
-      - name: 下载并解压 SDK
+      - name: 下载解压SDK
         run: |
           wget -q "$SDK_URL" -O sdk.tar.zst
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
 
-      - name: 拉取并安装 LuCI 源码（关键：确保luci.mk存在）
+      - name: 拉取LuCI源码（仅获取luci.mk核心宏）
         working-directory: sdk
         run: |
           sed -i '/src-git luci/d' feeds.conf.default
           echo "src-git luci https://github.com/openwrt/luci.git;$LUCI_BRANCH" >> feeds.conf.default
           ./scripts/feeds update luci
-          ./scripts/feeds install -a -p luci
           ls -lh feeds/luci/luci.mk
 
-      - name: 复制插件到 package 目录
+      - name: 复制插件到package目录
         run: |
           cp -r luci-app-easymesh sdk/package/
           ls -lh sdk/package/luci-app-easymesh/Makefile
 
-      - name: 启用APK模式并校验插件
+      - name: 启用APK模式 + 校验包识别
         working-directory: sdk
         run: |
           echo "CONFIG_USE_APK=y" >> .config
-          make defconfig
-          echo "=== 插件识别状态 ==="
-          grep "CONFIG_PACKAGE_luci-app-easymesh" .config || echo "❌ 插件未被识别"
-          grep "CONFIG_PACKAGE_luci-i18n-easymesh-zh-cn" .config || echo "⚠️  中文语言包未识别"
+          echo "=== 1. 校验Makefile语法 ==="
+          make package/luci-app-easymesh/info V=s
+          echo ""
+          echo "=== 2. 生成默认配置 ==="
+          make defconfig > /dev/null 2>&1
+          echo ""
+          echo "=== 3. 包识别结果 ==="
+          if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then
+            echo "✅ 插件识别成功"
+          else
+            echo "❌ 插件未识别，Makefile存在问题"
+            exit 1
+          fi
 
-      - name: 编译 APK 包
+      - name: 编译APK包
         working-directory: sdk
         run: |
           make package/luci-app-easymesh/compile V=s -j$(nproc)
 
-      - name: 收集 APK 产物
+      - name: 收集产物
         run: |
           mkdir -p output/apk
           find sdk/bin/packages -name "luci-app-easymesh*.apk" -o -name "luci-i18n-easymesh*.apk" | xargs -I {} cp {} output/apk/
           ls -lh output/apk/
 
-      - name: 上传 APK 产物
+      - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-easymesh-apk-${{ env.ARCH }}

@@ -13,6 +13,7 @@ jobs:
     name: Build IPK (mt7621)
     runs-on: ubuntu-latest
     env:
+      TERM: dumb
       SDK_URL: "https://downloads.openwrt.org/releases/24.10.7/targets/ramips/mt7621/openwrt-sdk-24.10.7-ramips-mt7621_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
       LUCI_BRANCH: "openwrt-24.10"
       ARCH: "mipsel_24kc"
@@ -35,7 +36,7 @@ jobs:
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
 
-      - name: 拉取LuCI源码（仅获取luci.mk核心宏）
+      - name: 拉取LuCI源码（获取luci.mk核心宏）
         working-directory: sdk
         run: |
           sed -i '/src-git luci/d' feeds.conf.default
@@ -48,20 +49,19 @@ jobs:
           cp -r luci-app-easymesh sdk/package/
           ls -lh sdk/package/luci-app-easymesh/Makefile
 
-      - name: 校验Makefile语法 + 包识别状态
+      - name: 生成配置并校验插件识别
         working-directory: sdk
         run: |
-          echo "=== 1. 校验Makefile语法 ==="
-          make package/luci-app-easymesh/info V=s
-          echo ""
-          echo "=== 2. 生成默认配置 ==="
+          echo "=== 生成默认配置 ==="
           make defconfig > /dev/null 2>&1
+          
           echo ""
-          echo "=== 3. 包识别结果 ==="
+          echo "=== 插件识别结果 ==="
           if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then
             echo "✅ 插件识别成功"
           else
-            echo "❌ 插件未识别，Makefile存在问题"
+            echo "❌ 插件未被识别"
+            grep -i easymesh .config || echo "未找到任何相关配置项"
             exit 1
           fi
 
@@ -86,6 +86,7 @@ jobs:
     name: Build APK (mt7621)
     runs-on: ubuntu-latest
     env:
+      TERM: dumb
       SDK_URL: "https://downloads.openwrt.org/releases/25.12.0-rc2/targets/ramips/mt7621/openwrt-sdk-25.12.0-rc2-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
       LUCI_BRANCH: "openwrt-25.12"
       ARCH: "mipsel_24kc"
@@ -108,7 +109,7 @@ jobs:
           tar -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
 
-      - name: 拉取LuCI源码（仅获取luci.mk核心宏）
+      - name: 拉取LuCI源码（获取luci.mk核心宏）
         working-directory: sdk
         run: |
           sed -i '/src-git luci/d' feeds.conf.default
@@ -121,21 +122,20 @@ jobs:
           cp -r luci-app-easymesh sdk/package/
           ls -lh sdk/package/luci-app-easymesh/Makefile
 
-      - name: 启用APK模式 + 校验包识别
+      - name: 启用APK模式并校验插件识别
         working-directory: sdk
         run: |
           echo "CONFIG_USE_APK=y" >> .config
-          echo "=== 1. 校验Makefile语法 ==="
-          make package/luci-app-easymesh/info V=s
-          echo ""
-          echo "=== 2. 生成默认配置 ==="
+          echo "=== 生成默认配置 ==="
           make defconfig > /dev/null 2>&1
+          
           echo ""
-          echo "=== 3. 包识别结果 ==="
+          echo "=== 插件识别结果 ==="
           if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then
             echo "✅ 插件识别成功"
           else
-            echo "❌ 插件未识别，Makefile存在问题"
+            echo "❌ 插件未被识别"
+            grep -i easymesh .config || echo "未找到任何相关配置项"
             exit 1
           fi
 

@@ -40,6 +40,9 @@ jobs:
       - name: 配置对应版本 LuCI 软件源
         working-directory: sdk
         run: |
+          # 先删除原有luci源行，避免重复
+          sed -i '/src-git luci/d' feeds.conf.default
+          # 写入指定分支的luci源
           echo "src-git luci https://github.com/openwrt/luci.git;$LUCI_BRANCH" >> feeds.conf.default
           ./scripts/feeds update luci
           ./scripts/feeds install -a -p luci
@@ -97,6 +100,9 @@ jobs:
       - name: 配置对应版本 LuCI 软件源
         working-directory: sdk
         run: |
+          # 先删除原有luci源行，避免重复
+          sed -i '/src-git luci/d' feeds.conf.default
+          # 写入指定分支的luci源
           echo "src-git luci https://github.com/openwrt/luci.git;$LUCI_BRANCH" >> feeds.conf.default
           ./scripts/feeds update luci
           ./scripts/feeds install -a -p luci

@@ -53,8 +53,18 @@ jobs:
         working-directory: sdk
         run: |
           echo "=== 生成默认配置 ==="
+
+          # 更新并安装 feeds，确保新复制的 package 能被识别
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+          # 确保配置中没有旧的同名条目，然后显式启用包为 module
+          sed -i '/^CONFIG_PACKAGE_luci-app-easymesh=/d' .config || true
+          echo 'CONFIG_PACKAGE_luci-app-easymesh=m' >> .config
+
+          # 生成默认配置
           make defconfig > /dev/null 2>&1
-          
+
           echo ""
           echo "=== 插件识别结果 ==="
           if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then
@@ -126,9 +136,20 @@ jobs:
         working-directory: sdk
         run: |
           echo "CONFIG_USE_APK=y" >> .config
+
           echo "=== 生成默认配置 ==="
+
+          # 更新并安装 feeds，确保新复制的 package 能被识别
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+          # 确保配置中没有旧的同名条目，然后显式启用包为 module
+          sed -i '/^CONFIG_PACKAGE_luci-app-easymesh=/d' .config || true
+          echo 'CONFIG_PACKAGE_luci-app-easymesh=m' >> .config
+
+          # 生成默认配置
           make defconfig > /dev/null 2>&1
-          
+
           echo ""
           echo "=== 插件识别结果 ==="
           if grep -q "CONFIG_PACKAGE_luci-app-easymesh=m" .config; then

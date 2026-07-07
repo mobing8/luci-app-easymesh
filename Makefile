@@ -18,8 +18,4 @@ LUCI_TITLE:=Easy Mesh WiFi Setup
 LUCI_DESCRIPTION:=基于 Batman-adv 的简易无线 Mesh 组网配置插件
 LUCI_DEPENDS:=+luci-base +kmod-batman-adv +batctl
 
-define Package/$(PKG_NAME)/conffiles
-/etc/config/easymesh
-endef
-
 $(eval $(call LuCIPackage,$(PKG_NAME)))

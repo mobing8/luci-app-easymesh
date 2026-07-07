@@ -44,15 +44,14 @@ jobs:
           echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
           echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
-      - name: Minimal config (无echo追加，解决olddefconfig崩溃)
+      - name: Minimal config
         run: |
           cd sdk
           make defconfig V=0
-          cat > .tmp_cfg << 'EOT'
-CONFIG_USE_APK=y
-CONFIG_PACKAGE_luci-app-easymesh=y
-CONFIG_LUCI_LANG_zh-cn=y
-EOT
+          rm -f .tmp_cfg
+          echo "CONFIG_USE_APK=y" > .tmp_cfg
+          echo "CONFIG_PACKAGE_luci-app-easymesh=y" >> .tmp_cfg
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .tmp_cfg
           ./scripts/config/conf --defconfig=.tmp_cfg
           rm -f .tmp_cfg
 
@@ -112,14 +111,13 @@ EOT
           echo '"Content-Type: text/plain; charset=UTF-8\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
           echo '"Plural-Forms: nplurals=1; plural=0;\n"' >> package/luci-app-easymesh/po/templates/easymesh.pot
 
-      - name: Minimal config (无echo追加，解决olddefconfig崩溃)
+      - name: Minimal config
         run: |
           cd sdk
           make defconfig V=0
-          cat > .tmp_cfg << 'EOT'
-CONFIG_PACKAGE_luci-app-easymesh=y
-CONFIG_LUCI_LANG_zh-cn=y
-EOT
+          rm -f .tmp_cfg
+          echo "CONFIG_PACKAGE_luci-app-easymesh=y" > .tmp_cfg
+          echo "CONFIG_LUCI_LANG_zh-cn=y" >> .tmp_cfg
           ./scripts/config/conf --defconfig=.tmp_cfg
           rm -f .tmp_cfg
 
